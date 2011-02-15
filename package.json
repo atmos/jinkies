@@ -1,0 +1,34 @@
+{
+  "name":        "jinkies",
+  "description": "Translate GitHub post commits to Jenkins CI builds and back",
+  "keywords":    "github post-receive hudson jenkins",
+  "author":      "Corey Donohoe",
+  "version":     "0.1.2",
+  "licenses":     [{
+    "type":       "MIT",
+    "url":        "http://github.com/atmos/jinkies/raw/master/LICENSE"
+  }],
+
+  "repository" : {
+    "type" : "git",
+    "url" : "http://github.com/atmos/jinkies.git"
+  },
+
+  "dependencies" : {
+    "coffee-script"  : ">= 1.0.1",
+    "express"        : ">= 1.0.7",
+    "optparse"       : ">= 1.0.1",
+    "ansi-color"     : ">= 0.2.1"
+  },
+
+  "engines":      {
+    "node":  ">=0.2.5"
+  },
+  "directories":  {
+    "lib": "./lib"
+  },
+  "main": "./lib/jinkies",
+  "bin": {
+    "jinkies": "./bin/jinkies"
+  }
+}

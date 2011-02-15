@@ -1,0 +1,123 @@
+#!/usr/bin/env coffee
+require.paths.unshift(__dirname + "/../src")
+
+Color    = require "ansi-color"
+Jinkies  = require "jinkies"
+OptParse = require "optparse"
+
+Switches = [
+  [ "-h", "--help",              "Display the help information"],
+  [ "-j", "--job JOB",           "Specify the jenkins job"],
+  [ "-t", "--trigger-build",     "Trigger a build for the jenkins jobs"],
+  [ "-b", "--branch BRANCH",     "Specify the jenkins build should locate"],
+  [ "-s", "--sha1 SHA1",         "Specify the SHA1 the jenkins build should locate"],
+  [ "-p", "--express-port PORT", "Specify the express port, defaults to 45678"],
+  [ "-e", "--express-app",       "Start the express webhook endpoint"],
+  [ "-r", "--robot",             "Start a shell robot"],
+  [ "-c", "--campfire",          "Start a campfire notifier"],
+  [ "-d", "--server SERVER",     "Specify jinkies server to use"],
+  [ "-a", "--all",               "List all the jobs on the jenkins server"]
+]
+
+Options =
+  mode:    "all"
+  sha1:    ""
+  port:    45678
+  job:     process.env.JENKINS_JOB    || "default"
+  server:  process.env.JENKINS_SERVER || "http://localhost:8080"
+  branch:  process.env.JENKINS_BRANCH || "master"
+
+Parser = new OptParse.OptionParser(Switches)
+Parser.banner = "Usage jinkies [options]"
+
+Parser.on "server", (opt, value) ->
+  Options.server = value
+
+Parser.on "all", ->
+  Options.mode = "all"
+
+Parser.on "branch", (opt, value) ->
+  Options.branch = value
+  Options.mode = "job"
+
+Parser.on "sha1", (opt, value) ->
+  Options.sha1 = value
+  Options.mode = "job"
+
+Parser.on "job", (opt, value) ->
+  Options.job = value
+  Options.mode = "job"
+
+Parser.on "robot", (opt, value) ->
+  Options.mode = "robot"
+
+Parser.on "campfire", (opt, value) ->
+  Options.mode = "campfire"
+
+Parser.on "trigger-build", (opt, value) ->
+  Options.mode = "build"
+
+Parser.on "express-app", (opt, value) ->
+  Options.mode = "express"
+
+Parser.on "express-port", (opt, value) ->
+  Options.port = value
+
+Parser.on "help", (opt, value) ->
+  console.log Parser.toString()
+  process.exit 0
+
+Parser.parse process.ARGV
+
+server = new Jinkies.Server(Options.server)
+
+switch Options.mode
+  when "all"
+    server.jobs (err, jobs) ->
+      for job in jobs
+        do (job) ->
+          job.color = "green" if job.color == "blue"
+          console.log("#{Color.set(job.name, job.color)} - #{job.url}")
+  when "job"
+    job = server.job_for Options.job
+    job.info (err, info) ->
+      info.color = "green" if info.color == "blue"
+      console.log("#{Color.set(info.name, info.color)} - #{info.url}")
+      job.build_for info.lastSuccessfulBuild.number, (err, build) ->
+        console.log("  Last Successful Build - ##{build.number} - #{build.branch} - #{build.sha1}")
+        if info.lastFailedBuild
+          job.build_for info.lastFailedBuild.number, (err, build) ->
+            console.log("  Last Failed Build     - ##{build.number} - #{build.branch} - #{build.sha1}")
+        else
+          console.log("  Last Failed Build     - never")
+  when "build"
+    job = server.job_for Options.job
+    job.triggerBuild Options.branch, "{}", (err, data) ->
+      status = Color.set("failed", "red")
+      status = Color.set("succeeded", "green") if data.status == true
+      console.log "Build request for #{job.name}: #{status}"
+
+  when "express"
+    app         = Jinkies.ExpressApp
+    app.jinkies = new Jinkies.Server(Options.server)
+    app.listen(Options.port)
+    process.on 'uncaughtException', (err) ->
+      console.log('Caught exception: ' + err)
+
+  when "robot"
+    robot = new Jinkies.Robot(Options.server)
+    robot.on "build", (err, build, notification) ->
+      console.log(notification)
+    robot.run()
+  when "campfire"
+    campfireOptions =
+      room:    process.env.JENKINS_CAMPFIRE_ROOM
+      token:   process.env.JENKINS_CAMPFIRE_TOKEN
+      account: process.env.JENKINS_CAMPFIRE_ACCOUNT
+
+     robot = new Jinkies.CampfireRobot(Options.server, campfireOptions)
+     robot.run()
+
+#console.log(Options)
+
+# vim:ft=coffee
