@@ -18,20 +18,25 @@ app.post "/", (req, res) ->
 
   job = app.jinkies.job_for project
   job.triggerBuild branch, req.body.payload, (err, data) ->
-    res.send data, {"Content-Type"; "application/json"}, data.status
+    res.send data, {"Content-Type"; "application/json"}, 200
 
 app.get "/jobs", (req, res) ->
   app.jinkies.jobs (err, jobs) ->
     res.send jobs, {"Content-Type"; "application/json"}, 200
 
-app.get "/jobs/:name", (req, res) ->
-  job = app.jinkies.job_for req.params.name
+app.get "/jobs/:job", (req, res) ->
+  job = app.jinkies.job_for req.params.job
   job.info (err, info) ->
     res.send info, {"Content-Type"; "application/json"}, 200
 
-app.get "/jobs/:name/build/:number", (req, res) ->
-  job = app.jinkies.job_for req.params.name
-  job.build_for req.params.number, (err, build) ->
+app.get "/jobs/:job/builds/:build", (req, res) ->
+  job = app.jinkies.job_for req.params.job
+  job.build_for req.params.build, (err, build) ->
     res.send build, {"Content-Type"; "application/json"}, 200
+
+app.get "/jobs/:job/branches/:branch", (req, res) ->
+  job = app.jinkies.job_for req.params.job
+  job.branches_for req.params.branch, (err, branches) ->
+    res.send branches, {"Content-Type"; "application/json"}, 200
 
 exports.App = app

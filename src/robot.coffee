@@ -17,14 +17,14 @@ class Build
       branch   = data.branch
       reply    = "Build ##{number} (#{sha}) of #{self.job.name}/#{branch}"
       compare  = data.payload && data.payload.compare
-      duration = data.data.duration / 1000
+      duration = data.data.duration / 1000 || 0.0
 
       if data.status == true
         reply += " was successful. "
       else
         reply += " failed. "
 
-      reply += "(#{duration}s)."
+      reply += "(#{Math.floor(duration)}s)."
       reply += compare if compare
 
       callback err, self, reply

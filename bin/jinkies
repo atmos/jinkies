@@ -103,6 +103,7 @@ switch Options.mode
     app.listen(Options.port)
     process.on 'uncaughtException', (err) ->
       console.log('Caught exception: ' + err)
+      console.log err.stack
 
   when "robot"
     robot = new Jinkies.Robot(Options.server)
