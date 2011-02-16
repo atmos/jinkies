@@ -27,7 +27,7 @@ Vows
       j = new Job Options.server, Options.job
       j.status @callback
     "get the status of a job": (err, status) ->
-      assert.equal status, "SUCCESS"
+      assert.equal status, "successful"
   "Jenkins Jobs#build_for can":
     topic: ->
       j = new Job Options.server, Options.job

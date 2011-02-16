@@ -3,8 +3,15 @@ class Build
     @sha1     = "0000000000000000000000000000000000000000"
     @branch   = "master"
     @compare  = ""
-    @status   = @data.result
     @output   = "#{@host}/job/#{@name}/#{@number}/consoleText"
+
+    switch @data.result
+      when "SUCCESS"
+        @status = "successful"
+      when "FAILURE"
+        @status = "failed"
+      else # null
+        @status = "building"
 
     info = (action for action in @data.actions when action.parameters)
     if info[0]

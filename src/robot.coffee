@@ -20,13 +20,13 @@ class Build
       duration = data.data.duration / 1000 || 0.0
 
       switch data.status
-        when "SUCCESS"
+        when "successful"
           reply += " was successful. "
-        when "FAILURE"
+        when "failed"
           reply += " failed. "
-        when null
-          reply += " building. "
-        else # null
+        when "building"
+          reply += " building now. "
+        else
           reply += " unknown[#{data.status}]. "
 
       reply += "(#{Math.floor(duration)}s)."
