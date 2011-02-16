@@ -29,6 +29,11 @@ app.get "/jobs/:job", (req, res) ->
   job.info (err, info) ->
     res.send info, {"Content-Type"; "application/json"}, 200
 
+app.post "/jobs/:job/builds", (req, res) ->
+  job = app.jinkies.job_for req.params.job
+  job.triggerBuild req.body.branch, "{}", (err, data) ->
+    res.send data, {"Content-Type"; "application/json"}, 200
+
 app.get "/jobs/:job/builds/:build", (req, res) ->
   job = app.jinkies.job_for req.params.job
   job.build_for req.params.build, (err, build) ->
