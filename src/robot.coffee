@@ -6,18 +6,18 @@ class Build
   constructor: (@job, @number) ->
 
   info: (callback) ->
-    @job.client.fetch "/jobs/#{@job.name}/build/#{@number}", (err, data) ->
+    @job.client.fetch "/jobs/#{@job.name}/builds/#{@number}", (err, data) ->
       callback err, data
 
   notify: (callback) ->
     self = @
     @info (err, data) ->
-      sha      = data.sha1 && data.sha1.slice(0,7)
+      sha      = data.sha1.slice(0,7)
       number   = data.number
       branch   = data.branch
       reply    = "Build ##{number} (#{sha}) of #{self.job.name}/#{branch}"
       compare  = data.payload && data.payload.compare
-      duration = (data.data && data.data.duration / 1000) || 0.0
+      duration = data.data.duration / 1000 || 0.0
 
       if data.status == true
         reply += " was successful. "
