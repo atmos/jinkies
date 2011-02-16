@@ -12,7 +12,7 @@ class Build
   notify: (callback) ->
     self = @
     @info (err, data) ->
-      sha      = data.sha1.slice(0,7)
+      sha      = data.sha1 && data.sha1.slice(0,7)
       number   = data.number
       branch   = data.branch
       reply    = "Build ##{number} (#{sha}) of #{self.job.name}/#{branch}"

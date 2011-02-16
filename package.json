@@ -3,7 +3,7 @@
   "description": "Translate GitHub post commits to Jenkins CI builds and back",
   "keywords":    "github post-receive hudson jenkins",
   "author":      "Corey Donohoe",
-  "version":     "0.1.4",
+  "version":     "0.1.5",
   "licenses":     [{
     "type":       "MIT",
     "url":        "http://github.com/atmos/jinkies/raw/master/LICENSE"
