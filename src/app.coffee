@@ -31,7 +31,8 @@ app.get "/jobs/:job", (req, res) ->
 
 app.post "/jobs/:job/builds", (req, res) ->
   job = app.jinkies.job_for req.params.job
-  job.triggerBuild req.body.branch, "{}", (err, data) ->
+  branch_name = req.body.branch || "master"
+  job.triggerBuild branch_name, "{}", (err, data) ->
     res.send data, {"Content-Type"; "application/json"}, 200
 
 app.get "/jobs/:job/builds/:build", (req, res) ->
