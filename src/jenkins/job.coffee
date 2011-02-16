@@ -21,8 +21,9 @@ class Job
         callback err, results
 
   status: (callback) ->
-    @info (err, data) ->
-      callback err, data.color == "blue"
+    @branches_for 'master', (err, branches) ->
+      branch = branches[0] || { status: 'failed' }
+      callback err, branch.status
 
   build_for: (number, callback) ->
     host = @host

@@ -11,7 +11,7 @@ Vows
   "Jenkins Jobs Build can":
     topic: ->
       j = new Job Options.server, Options.job
-      j.triggerBuild 'origin/master', "{}", @callback
+      j.triggerBuild "master", "{}", @callback
 
     "trigger a build": (err, data) ->
       assert.ok data.status

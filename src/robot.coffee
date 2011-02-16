@@ -19,10 +19,15 @@ class Build
       compare  = data.payload && data.payload.compare
       duration = data.data.duration / 1000 || 0.0
 
-      if data.status == true
-        reply += " was successful. "
-      else
-        reply += " failed. "
+      switch data.status
+        when "SUCCESS"
+          reply += " was successful. "
+        when "FAILURE"
+          reply += " failed. "
+        when null
+          reply += " building. "
+        else # null
+          reply += " unknown[#{data.status}]. "
 
       reply += "(#{Math.floor(duration)}s)."
       reply += compare if compare

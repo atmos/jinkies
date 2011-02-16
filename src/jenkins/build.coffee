@@ -3,7 +3,7 @@ class Build
     @sha1     = "0000000000000000000000000000000000000000"
     @branch   = "master"
     @compare  = ""
-    @status   = @data.result == "SUCCESS"
+    @status   = @data.result
     @output   = "#{@host}/job/#{@name}/#{@number}/consoleText"
 
     info = (action for action in @data.actions when action.parameters)

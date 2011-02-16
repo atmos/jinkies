@@ -27,15 +27,15 @@ Vows
       j = new Job Options.server, Options.job
       j.status @callback
     "get the status of a job": (err, status) ->
-      assert.ok status
+      assert.equal status, "SUCCESS"
   "Jenkins Jobs#build_for can":
     topic: ->
       j = new Job Options.server, Options.job
       j.build_for 10, @callback
     "get info about a build number": (err, build) ->
       assert.ok    build.status
+      assert.equal build.branch, "master"
       assert.equal build.sha1  , "3ba21ee37953c344f698171cb2ab725ef7f9b776"
-      assert.equal build.branch, "origin/master"
       assert.equal build.output, "#{Options.server}/job/#{Options.job}/10/consoleText"
 
 .export(module)
