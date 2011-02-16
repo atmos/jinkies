@@ -17,7 +17,7 @@ class Build
       branch   = data.branch
       reply    = "Build ##{number} (#{sha}) of #{self.job.name}/#{branch}"
       compare  = data.payload && data.payload.compare
-      duration = data.data.duration / 1000 || 0.0
+      duration = (data.data && data.data.duration / 1000) || 0.0
 
       if data.status == true
         reply += " was successful. "
