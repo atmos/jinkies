@@ -3,6 +3,12 @@ Express = require "express"
 
 app     = Express.createServer()
 
+fullOutputHosts = [ '127.0.0.1' ]
+
+if process.env.JINKIES_OUTPUT_WHITELIST
+  process.env.JINKIES_OUTPUT_WHITELIST.split(",").forEach (ip) ->
+    fullOutputHosts.push(ip)
+
 app.configure ->
   app.use Express.logger()
   app.use Express.methodOverride()
@@ -38,7 +44,11 @@ app.post "/jobs/:job/builds", (req, res) ->
 app.get "/jobs/:job/builds/:build", (req, res) ->
   job = app.jinkies.job_for req.params.job
   job.build_for req.params.build, (err, build) ->
-    res.send build, {"Content-Type"; "application/json"}, 200
+    build.consoleText (err, data) ->
+      friendlyRequest = (ip for ip in fullOutputHosts when ip == req.socket.remoteAddress)
+      if friendlyRequest.length > 0
+        build.consoleText = data
+      res.send build, {"Content-Type"; "application/json"}, 200
 
 app.get "/jobs/:job/branches/:branch", (req, res) ->
   job = app.jinkies.job_for req.params.job

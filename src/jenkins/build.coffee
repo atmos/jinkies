@@ -1,3 +1,6 @@
+Url  = require("url")
+Http = require("http")
+
 class Build
   constructor: (@host, @name, @number, @data) ->
     @sha1     = "0000000000000000000000000000000000000000"
@@ -27,5 +30,28 @@ class Build
           @sha1    = @payload.after             if @payload.after
           @branch  = @payload.ref.split("/")[2] if @payload.ref
 
+  consoleText: (callback) ->
+    result = ""
+    url   = Url.parse @output
+
+    console.log url
+
+    client = Http.createClient url.port, url.hostname
+    client.on 'error', (err) ->
+      console.log "Unable to connect to #{@host}, did you set a JENKINS_SERVER environmental variable?"
+      callback(err, { })
+
+    request = client.request 'GET', url.pathname, {'host': url.hostname }
+    request.on 'response', (response) ->
+      response.on 'end', ->
+        if response.statusCode == 200
+          callback null, result
+        else
+          callback null, "Unable to fetch the output\nWTF\n"
+      response.on 'data', (chunk) ->
+        result += chunk
+      response.on 'error', (err) ->
+        callback err, { }
+    request.end()
 
 exports.Build = Build
