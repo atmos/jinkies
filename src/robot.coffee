@@ -29,10 +29,12 @@ class Build
         else
           reply += " unknown[#{data.status}]. "
 
+      self.status = data.status
+
       reply += "(#{Math.floor(duration)}s)."
       reply += compare if compare
 
-      callback err, self, reply
+      callback err, self, reply, data.consoleText
 
 class Job
   constructor: (@client, @name) ->
@@ -44,8 +46,8 @@ class Job
       if data.lastCompletedBuild.number > self.number
         self.number = data.lastCompletedBuild.number
         build = new Build(self, self.number)
-        build.notify (err, build, notification) ->
-          callback err, build, notification
+        build.notify (err, build, notification, output) ->
+          callback err, build, notification, output
 
       setTimeout (->
         self.poll callback
@@ -65,8 +67,8 @@ class Robot extends EventEmitter
   run: (callback) ->
     self = @
     @findJobs (err, job) ->
-      job.poll (err, build, notification) ->
-        self.emit("build", err, build, notification)
+      job.poll (err, build, notification, output) ->
+        self.emit("build", err, build, notification, output)
 
 class CampfireRobot
   constructor: (@host, @options) ->
@@ -76,9 +78,12 @@ class CampfireRobot
 
   run: ->
     room = @room
-    @robot.on "build", (err, build, notification) ->
+    @robot.on "build", (err, build, notification, output) ->
       room.speak notification, (err, data) ->
-        console.log "Sent: #{data.message.body}"
+        console.log "Sent: #{notification}"
+        if build.status == "failed"
+          room.paste output, (err, data) ->
+            console.log "Pasted failures"
     @robot.run()
 
 exports.Robot         = Robot

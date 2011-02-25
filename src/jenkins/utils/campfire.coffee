@@ -84,7 +84,10 @@ class Campfire
       response.on "data", (chunk) ->
         data += chunk
       response.on "end", ->
-        callback null, JSON.parse data
+        try
+          callback null, JSON.parse data
+        catch err
+          callback null, { }
       response.on 'error', (err) ->
         callback err, { }
 
