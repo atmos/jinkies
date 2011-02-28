@@ -110,14 +110,20 @@ switch Options.mode
     robot.on "build", (err, build, notification) ->
       console.log(notification)
     robot.run()
+    process.on 'uncaughtException', (err) ->
+      console.log('Caught exception: ' + err)
+      console.log err.stack
   when "campfire"
     campfireOptions =
       room:    process.env.JENKINS_CAMPFIRE_ROOM
       token:   process.env.JENKINS_CAMPFIRE_TOKEN
       account: process.env.JENKINS_CAMPFIRE_ACCOUNT
 
-     robot = new Jinkies.CampfireRobot(Options.server, campfireOptions)
-     robot.run()
+    robot = new Jinkies.CampfireRobot(Options.server, campfireOptions)
+    robot.run()
+    process.on 'uncaughtException', (err) ->
+      console.log('Caught exception: ' + err)
+      console.log err.stack
 
 #console.log(Options)
 
