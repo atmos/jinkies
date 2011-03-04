@@ -21,18 +21,18 @@ class Build
 
       switch data.status
         when "successful"
-          reply += " was successful. "
+          reply += " was successful "
         when "failed"
-          reply += " failed. "
+          reply += " failed "
         when "building"
-          reply += " building now. "
+          reply += " building now "
         else
-          reply += " unknown[#{data.status}]. "
+          reply += " unknown[#{data.status}] "
 
       self.status = data.status
 
       reply += "(#{Math.floor(duration)}s)."
-      reply += compare if compare
+      reply += " #{compare}" if compare
 
       callback err, self, reply, data.consoleText
 
