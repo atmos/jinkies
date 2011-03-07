@@ -22,9 +22,12 @@ app.post "/", (req, res) ->
 
   project = "#{owner}-#{info.repository.name}"
 
-  job = app.jinkies.job_for project
-  job.triggerBuild branch, req.body.payload, (err, data) ->
-    res.send data, {"Content-Type": "application/json"}, 200
+  if info.deleted or (info.created and info.commits.length == 0)
+    # ignore branch deletions, and new branches with no commits
+  else
+    job = app.jinkies.job_for project
+    job.triggerBuild branch, req.body.payload, (err, data) ->
+      res.send data, {"Content-Type": "application/json"}, 200
 
 app.get "/jobs", (req, res) ->
   app.jinkies.jobs (err, jobs) ->
