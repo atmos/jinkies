@@ -38,16 +38,18 @@ class Build
 
 class Job
   constructor: (@client, @name) ->
-    @number = 1
+    @number = null
 
   poll: (callback) ->
     self = @
     @client.fetch "/jobs/#{@name}", (err, data) ->
-      if data.lastCompletedBuild.number > self.number
+      if !self.number or data.lastCompletedBuild.number > self.number
+        prev_number = self.number
         self.number = data.lastCompletedBuild.number
-        build = new Build(self, self.number)
-        build.notify (err, build, notification, output) ->
-          callback err, build, notification, output
+        if prev_number?
+          build = new Build(self, self.number)
+          build.notify (err, build, notification, output) ->
+            callback err, build, notification, output
 
       setTimeout (->
         self.poll callback
