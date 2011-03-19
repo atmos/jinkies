@@ -1,5 +1,5 @@
 #!/usr/bin/env coffee
-require.paths.unshift(__dirname + "/../src")
+require.paths.unshift(__dirname + "/../lib")
 
 Color    = require "ansi-color"
 Jinkies  = require "jinkies"

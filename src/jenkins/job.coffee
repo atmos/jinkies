@@ -1,7 +1,11 @@
 Map          = require("async").map
+Redis        = require("redis-node")
 Build        = require("jenkins/build").Build
 HttpRequest  = require("jenkins/utils/http_request").HttpRequest
 BuildRequest = require("jenkins/utils/job_build_request").JobBuildRequest
+
+RedisClient  = Redis.createClient()
+RedisClient.select 7
 
 class Job
   constructor: (@host, @name) ->
@@ -26,11 +30,23 @@ class Job
       callback err, branch.status
 
   build_for: (number, callback) ->
-    host = @host
-    name = @name
-    @client.fetch "/job/#{@name}/#{number}/api/json", (err, data) ->
-      build = new Build host, name, number, data
-      callback err, build
+    host   = @host
+    name   = @name
+    client = @client
+
+    RedisClient.get "#{@name}:#{number}", (err, cachedBuild) ->
+      if cachedBuild
+        callback err, JSON.parse cachedBuild
+      else
+        client.fetch "/job/#{name}/#{number}/api/json", (err, data) ->
+          build = new Build host, name, number, data
+          if build.status != "building"
+            build.consoleText (err, data) ->
+              build.consoleText = data
+              RedisClient.set "#{name}:#{number}", JSON.stringify(build), (err, data) ->
+                callback err, build
+          else
+            callback err, build
 
   branches_for: (branch, callback) ->
     self = @

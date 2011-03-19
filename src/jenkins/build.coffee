@@ -16,6 +16,8 @@ class Build
       else # null
         @status = "building"
 
+    @statusClass = @statusClass()
+
     info = (action for action in @data.actions when action.parameters)
     if info[0]
       params  = info[0].parameters
@@ -34,10 +36,9 @@ class Build
     result = ""
     url   = Url.parse @output
 
-    console.log url
-
     client = Http.createClient url.port, url.hostname
     client.on 'error', (err) ->
+      console.log url
       console.log "Unable to connect to #{@host}, did you set a JENKINS_SERVER environmental variable?"
       callback(err, { })
 
@@ -53,5 +54,14 @@ class Build
       response.on 'error', (err) ->
         callback err, { }
     request.end()
+
+  statusClass: ->
+    switch @status
+      when 'successful'
+        'good'
+      when 'building'
+        'building'
+      else
+        'janky'
 
 exports.Build = Build
