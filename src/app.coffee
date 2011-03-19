@@ -13,12 +13,10 @@ Config  =
   apiPassword: process.env.JINKIES_API_PASSWORD || "password"
 
 apiUserPasswordFunction = (username, password, successCallback, failureCallback) ->
-	if username == "api" && password == Config.apiPassword
-		successCallback()
-	else
-		failureCallback()
-
-console.log Path.join(__filename, "..",  "..")
+  if username == "api" && password == Config.apiPassword
+    successCallback()
+  else
+    failureCallback()
 
 app.configure ->
   app.set "root", Path.join(__filename, "..",  "..")
