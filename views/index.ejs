@@ -1,0 +1,11 @@
+<ul class="builds">
+  <% jobs.forEach(function(build) { %>
+  <li class="<%- build.statusClass %>">
+    <a href="/jobs/<%- build.name %>/builds/<%- build.number %>/console">
+      <span class="status"></span>
+      <h2><%- build.name %></h2>
+      <p><%- new Date(build.data.timestamp) %></p>
+    </a>
+  </li>
+  <% }) %>
+</ul>
