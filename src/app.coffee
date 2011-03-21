@@ -7,12 +7,13 @@ Express = require "express"
 app     = Express.createServer()
 
 Config  =
-  scope:        "email,offline_access"
-  appId:        process.env.GITHUB_CLIENT_ID
-  appSecret:    process.env.GITHUB_CLIENT_SECRET
-  callback:     process.env.GITHUB_CALLBACK
-  apiPassword:  process.env.JINKIES_API_PASSWORD || "password"
-  organization: process.env.JINKIES_ORGANIZATION || "github"
+  scope:         "email,offline_access"
+  appId:         process.env.GITHUB_CLIENT_ID
+  appSecret:     process.env.GITHUB_CLIENT_SECRET
+  callback:      process.env.GITHUB_CALLBACK
+  sessionSecret: process.env.GITHUB_SESSION_SECRET || "unknown"
+  apiPassword:   process.env.JINKIES_API_PASSWORD  || "password"
+  organization:  process.env.JINKIES_ORGANIZATION  || "github"
 
 apiUserPasswordFunction = (username, password, successCallback, failureCallback) ->
   if username == "api" && password == Config.apiPassword
@@ -29,7 +30,7 @@ app.configure ->
   app.use Express.errorHandler({ showStack: true, dumpExceptions: true })
   app.use Express.static Path.join(__filename, "..", "..", "public")
   app.use Express.cookieParser()
-  app.use Express.session { secret: process.env.GITHUB_SESSION_SECRET, lifetime: 150000, reapInterval: 10000 }
+  app.use Express.session { secret: Config.sessionSecret, lifetime: 150000, reapInterval: 10000 }
   app.use(Auth([ Auth.Anonymous(), Auth.Basic({validatePassword: apiUserPasswordFunction}), Auth.Github(Config) ]))
   app.use Express.bodyParser()
 
