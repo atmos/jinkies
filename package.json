@@ -1,9 +1,9 @@
 {
   "name":        "jinkies",
-  "description": "Translate GitHub post commits to Jenkins CI builds and back",
-  "keywords":    "github post-receive hudson jenkins",
+  "description": "GitHub integration with Jenkins CI",
+  "keywords":    "github post-receive hudson jenkins dashboard",
   "author":      "Corey Donohoe",
-  "version":     "0.2.7",
+  "version":     "0.3.0",
   "licenses":     [{
     "type":       "MIT",
     "url":        "http://github.com/atmos/jinkies/raw/master/LICENSE"
