@@ -71,12 +71,13 @@ app.all "*", (req, res, next) ->
 # GitHub post-receives land here
 app.post "/", (req, res) ->
   info    = JSON.parse(req.body.payload)
+  payload = info.payload
   owner   = info.repository.owner.name
   branch  = info["ref"].split("/")[2]
 
   project = "#{owner}-#{info.repository.name}"
 
-  if info.deleted or (info.created and info.commits.length == 0)
+  if payload.deleted or (payload.created and payload.commits.length == 0)
     # ignore branch deletions, and new branches with no commits
   else
     job = app.jinkies.job_for project
