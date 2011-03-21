@@ -1,7 +1,7 @@
 Fs      = require "fs"
 Auth    = require "connect-auth"
 Path    = require "path"
-User     require "user"
+User    = require "user"
 Express = require "express"
 
 app     = Express.createServer()
