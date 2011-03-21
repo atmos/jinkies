@@ -1,16 +1,18 @@
 Fs      = require "fs"
 Auth    = require "connect-auth"
 Path    = require "path"
+User     require "user"
 Express = require "express"
 
 app     = Express.createServer()
 
 Config  =
-  scope:       "email,offline_access"
-  appId:       process.env.GITHUB_CLIENT_ID
-  appSecret:   process.env.GITHUB_CLIENT_SECRET
-  callback:    process.env.GITHUB_CALLBACK
-  apiPassword: process.env.JINKIES_API_PASSWORD || "password"
+  scope:        "email,offline_access"
+  appId:        process.env.GITHUB_CLIENT_ID
+  appSecret:    process.env.GITHUB_CLIENT_SECRET
+  callback:     process.env.GITHUB_CALLBACK
+  apiPassword:  process.env.JINKIES_API_PASSWORD || "password"
+  organization: process.env.JINKIES_ORGANIZATION || "github"
 
 apiUserPasswordFunction = (username, password, successCallback, failureCallback) ->
   if username == "api" && password == Config.apiPassword
@@ -34,8 +36,12 @@ app.configure ->
 app.get "/auth/github/callback", (req, res) ->
   req.authenticate ["github"], (err, success) ->
     if success
-      console.log req.getAuthDetails()
-      res.redirect "/jobs"
+      user = new User.User req.getAuthDetails().user
+      user.memberOf Config.organization, (err, isMember) ->
+        if isMember
+          res.redirect "/jobs"
+        else
+          res.redirect "/auth/failure"
     else
       res.redirect "/auth/failure"
 
@@ -62,6 +68,7 @@ app.all "*", (req, res, next) ->
     else
       res.redirect "/auth/login"
 
+# GitHub post-receives land here
 app.post "/", (req, res) ->
   info    = JSON.parse(req.body.payload)
   owner   = info.repository.owner.name
@@ -76,6 +83,7 @@ app.post "/", (req, res) ->
     job.triggerBuild branch, req.body.payload, (err, data) ->
       res.send data, {"Content-Type": "application/json"}, 200
 
+# API for jobs info
 app.get "/jobs", (req, res) ->
   app.jinkies.jobs_info (err, jobs) ->
     if req.is "*/json"
