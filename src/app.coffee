@@ -33,6 +33,7 @@ app.configure ->
   app.use(Auth([ Auth.Anonymous(), Auth.Basic({validatePassword: apiUserPasswordFunction}), Auth.Github(Config) ]))
   app.use Express.bodyParser()
 
+# Oauth related Callbacks
 app.get "/auth/github/callback", (req, res) ->
   req.authenticate ["github"], (err, success) ->
     if success
@@ -55,19 +56,6 @@ app.get "/auth/logout", (req, res) ->
   req.logout()
   res.redirect("/jobs", 303)
 
-app.all "*", (req, res, next) ->
-  if req.is "*/json"
-    req.authenticate ["basic"], (err, success) ->
-      if success
-        next()
-      else
-        res.send "Unauthorized", 401
-  else
-    if req.isAuthenticated()
-      next()
-    else
-      res.redirect "/auth/login"
-
 # GitHub post-receives land here
 app.post "/", (req, res) ->
   info    = JSON.parse(req.body.payload)
@@ -83,6 +71,20 @@ app.post "/", (req, res) ->
     job = app.jinkies.job_for project
     job.triggerBuild branch, req.body.payload, (err, data) ->
       res.send data, {"Content-Type": "application/json"}, 200
+
+# Everything else requires Basic-Auth or Oauth
+app.all "*", (req, res, next) ->
+  if req.is "*/json"
+    req.authenticate ["basic"], (err, success) ->
+      if success
+        next()
+      else
+        res.send "Unauthorized", 401
+  else
+    if req.isAuthenticated()
+      next()
+    else
+      res.redirect "/auth/login"
 
 # API for jobs info
 app.get "/jobs", (req, res) ->
