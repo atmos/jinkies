@@ -5,7 +5,7 @@ HttpRequest  = require("jenkins/utils/http_request").HttpRequest
 BuildRequest = require("jenkins/utils/job_build_request").JobBuildRequest
 
 RedisClient  = Redis.createClient()
-RedisClient.select 7
+RedisClient.select 4
 
 class Job
   constructor: (@host, @name) ->

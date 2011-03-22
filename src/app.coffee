@@ -74,12 +74,15 @@ app.post "/", (req, res) ->
 
 # Everything else requires Basic-Auth or Oauth
 app.all "*", (req, res, next) ->
-  if req.is "*/json"
-    req.authenticate ["basic"], (err, success) ->
-      if success
-        next()
-      else
-        res.send "Unauthorized", 401
+  if req.headers.accept ==  "application/json"
+    if req.socket.remoteAddress == '127.0.0.1'
+      next()
+    else
+      req.authenticate ["basic"], (err, success) ->
+        if success
+          next()
+        else
+          res.send "Unauthorized", 401
   else
     if req.isAuthenticated()
       next()
@@ -89,7 +92,7 @@ app.all "*", (req, res, next) ->
 # API for jobs info
 app.get "/jobs", (req, res) ->
   app.jinkies.jobs_info (err, jobs) ->
-    if req.is "*/json"
+    if req.headers.accept == "application/json"
       res.send jobs, {"Content-Type": "application/json"}, 200
     else
       res.render "index", { title: "Janky CI Server", jobs: jobs }

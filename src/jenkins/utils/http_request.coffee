@@ -1,5 +1,5 @@
-Url  = require 'url'
-Http = require 'http'
+Url  = require "url"
+Http = require "http"
 
 class HttpRequest
   constructor: (@host) ->
@@ -10,22 +10,25 @@ class HttpRequest
 
   fetch: (path, callback) ->
     result = ""
-    client = Http.createClient @port, @hostname
+    headers =
+      "Accept": "application/json"
 
-    client.on 'error', (err) ->
-      console.log "Unable to connect to #{@host}, did you set a JENKINS_SERVER environmental variable?"
-      callback(err, { })
+    params =
+      "host":    @hostname
+      "port":    @port
+      "path":    "#{@path}#{path}"
+      "headers": headers
 
-    request = client.request 'GET', "#{@path}#{path}", {'host': @hostname }
-    request.on 'response', (response) ->
-      response.on 'end', ->
+    console.log params
+    request = Http.request params, (response) ->
+      response.on "end", ->
         if response.statusCode == 200
           callback null, JSON.parse(result)
         else
-          callback null, { 'error': response.statusCode, 'actions': [ ], 'jobs': [ ] } # shady
-      response.on 'data', (chunk) ->
+          callback null, { "error": response.statusCode, "actions": [ ], "jobs": [ ] } # shady
+      response.on "data", (chunk) ->
         result += chunk
-      response.on 'error', (err) ->
+      response.on "error", (err) ->
         callback err, { }
     request.end()
 
