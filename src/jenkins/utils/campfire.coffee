@@ -1,11 +1,13 @@
-HTTP   = require "http"
+HTTPS        = require "https"
+EventEmitter = require("events").EventEmitter
 
-class Campfire
+class Campfire extends EventEmitter
   constructor: (options) ->
     @token         = options.token
+    @rooms         = options.rooms and options.rooms.split(",")
     @account       = options.account
     @domain        = @account + ".campfirenow.com"
-    @authorization = "Basic " + new Buffer("#{@token}:x").toString('base64')
+    @authorization = "Basic " + new Buffer("#{@token}:x").toString("base64")
 
   Rooms: (callback) ->
     @get "/rooms", callback
@@ -38,28 +40,45 @@ class Campfire
     speak: (text, callback) ->
       @message text, "TextMessage", callback
     message: (text, type, callback) ->
-      body = { message: { 'body':text, 'type':type } }
+      body = { message: { "body":text, "type":type } }
       self.post "/room/#{id}/speak", body, callback
 
     # listen for activity in channels
-    listen: (callback) ->
-      path    = "/room/#{id}/live.json"
+    listen: ->
       headers =
         "Host"          : "streaming.campfirenow.com",
         "Authorization" : self.authorization
 
-      client = HTTP.createClient 443, "streaming.campfirenow.com", true
-      request = client.request "GET", path, headers
-      request.on "response", (response) ->
+      options =
+        "host"   : "streaming.campfirenow.com"
+        "port"   : 443
+        "path"   : "/room/#{id}/live.json"
+        "method" : "GET"
+        "headers": headers
+
+      request = HTTPS.request options, (response) ->
         response.setEncoding("utf8")
         response.on "data", (chunk) ->
-          if chunk != " "
-            for data in chunk.split("\r") when data != ""
-              do (data) ->
-                callback null, JSON.parse(data)
-      request.end()
+          #console.log "#{new Date}: Received #{id} \"#{chunk}\""
+          if chunk.match(/^\S+/)
+            try
+              chunk.split("\r").forEach (part) ->
+                data = JSON.parse part
 
-  # Convenience HTTP Methods for posting on behalf of the token'd user
+                self.emit data.type, data.id, data.created_at, data.room_id, data.user_id, data.body
+                data
+
+        response.on "end", ->
+          console.log "Streaming Connection closed. :("
+
+        response.on "error", (err) ->
+          console.log err
+      request.end()
+      request.on "error", (err) ->
+        console.log err
+        console.log err.stack
+
+  # Convenience HTTP Methods for posting on behalf of the token"d user
   get: (path, callback) ->
     @request "GET", path, null, callback
 
@@ -72,28 +91,36 @@ class Campfire
       "Host"          : @domain
       "Content-Type"  : "application/json"
 
+    options =
+      "host"   : @domain
+      "port"   : 443
+      "path"   : path
+      "method" : method
+      "headers": headers
+
     if method == "POST"
       if typeof(body) != "string"
         body = JSON.stringify body
-      headers["Content-Length"] = body.length
+      options.headers["Content-Length"] = body.length
 
-    client  = HTTP.createClient 443, @domain, true
-    request = client.request method, path, headers
-    request.on "response", (response) ->
+    request = HTTPS.request options, (response) ->
       data = ""
       response.on "data", (chunk) ->
         data += chunk
       response.on "end", ->
         try
-          callback null, JSON.parse data
+          callback null, JSON.parse(data)
         catch err
-          callback null, { }
-      response.on 'error', (err) ->
+          callback null, data || { }
+      response.on "error", (err) ->
         callback err, { }
 
     if method == "POST"
-      request.write body
-
-    request.end()
+      request.end(body)
+    else
+      request.end()
+    request.on "error", (err) ->
+      console.log err
+      console.log err.stack
 
 exports.Campfire = Campfire
