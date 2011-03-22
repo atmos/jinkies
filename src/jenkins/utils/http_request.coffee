@@ -19,7 +19,6 @@ class HttpRequest
       "path":    "#{@path}#{path}"
       "headers": headers
 
-    console.log params
     request = Http.request params, (response) ->
       response.on "end", ->
         if response.statusCode == 200
