@@ -8,10 +8,13 @@ class JobBuildRequest
     @path     = "/job/#{@name}/build"
     @hostname = @url.hostname
 
+    # remove commits to limit json payload size
+    @payload.commits = []
+
     @options  =
       parameter: [
         {'name': 'GITHUB_BRANCH',  'value': @branch},
-        {'name': 'GITHUB_PAYLOAD', 'value': @payload }
+        {'name': 'GITHUB_PAYLOAD', 'value': @payload}
       ]
 
   trigger: (callback) ->
